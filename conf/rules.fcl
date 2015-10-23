@@ -1,0 +1,97 @@
+FUNCTION_BLOCK Project
+
+   VAR_INPUT
+        ps : REAL;
+        herf : REAL;
+        basescore : REAL;
+        citems : REAL;
+   END_VAR
+   
+   VAR_OUTPUT
+        result : REAL;
+        rate : REAL;
+        expectarget: REAL;
+   END_VAR
+   
+   FUZZIFY ps
+      TERM low := trian -10 0.1 0.2;
+      TERM middle := trian 0.15 0.2 0.9;
+      TERM high := (0.8,0) (10,1);
+   END_FUZZIFY
+   
+   FUZZIFY herf
+      TERM poor := trian -10 0.5 1;
+      TERM good := trian 0.7 1 1.7;
+      TERM excellent := (1.5, 0) (2, 1) (10, 1);
+   END_FUZZIFY
+   
+   FUZZIFY basescore
+      TERM low := (0, 1) (3, 1) (6, 0);
+      TERM middle := (5, 0) (6, 1) (9, 0);
+      TERM high := (8, 0) (10, 1) (14, 0);
+      TERM super := (13, 0) (40, 1);
+   END_FUZZIFY
+   
+   FUZZIFY citems
+      TERM less := (0, 1) (2, 0);
+      TERM average := (1.5, 0) (5, 1);
+      TERM lots := (4, 0) (6, 1) (20, 1);
+   END_FUZZIFY
+   
+   DEFUZZIFY rate
+      TERM little := (1.4, 1) (1.8, 0);
+      TERM small := (1.6, 0) (2, 1) (2.2, 0);
+      TERM normal := (2.1, 0) (3, 1) (3.5, 0);
+      TERM big := (3.2, 0) (3.5, 1) (4.5, 0);
+      TERM large := (4, 0) (7, 1);
+      METHOD : COG;
+      DEFAULT := 1.5;
+   END_DEFUZZIFY
+   
+   DEFUZZIFY result
+      TERM bad := (0, 1) (1.5, 0);
+      TERM fine := (1.3, 0) (2, 1) (3, 1) (4, 0);
+      TERM perfect := (3.5, 0) (4 ,1) (10, 1);
+      METHOD : COG;
+      DEFAULT := 0;
+   END_DEFUZZIFY
+   
+   DEFUZZIFY expectarget
+      TERM low := (0, 1) (1, 0);
+      TERM middle := (0.7, 0) (1.5, 1) (2, 0);
+      TERM high := (1.7, 0) (2.5 ,1);
+      METHOD : COG;
+      DEFAULT := 0;
+   END_DEFUZZIFY
+   
+   
+   RULEBLOCK No1
+  		ACT : MIN;
+		ACCU : MAX;
+		AND : MIN;
+		
+		RULE 1 : IF (basescore IS low) AND (citems IS average) THEN rate IS large;
+		RULE 2 : IF (basescore IS low) AND (citems IS lots) THEN rate IS large;
+		RULE 3 : IF (basescore IS low) AND (citems IS less) THEN rate IS big;
+		RULE 4 : IF (basescore IS middle) AND (citems IS average) THEN rate IS normal;
+		RULE 5 : IF (basescore IS middle) AND (citems IS lots) THEN rate IS big;
+		RULE 6 : IF (basescore IS middle) AND (citems IS less) THEN rate IS small;
+		RULE 7 : IF (basescore IS high) AND (citems IS average) THEN rate IS small;
+		RULE 8 : IF (basescore IS high) AND (citems IS lots) THEN rate IS normal;
+		RULE 9 : IF (basescore IS high) AND (citems IS less) THEN rate IS small;
+		RULE 10 : IF (basescore IS super) THEN rate IS little;
+		
+		RULE 11 : IF (ps IS low) AND (herf IS poor) THEN result IS bad;
+		RULE 12 : IF (ps IS middle) AND (herf IS good) THEN result IS perfect;
+		RULE 13 : IF (ps IS middle) OR (herf IS good) THEN result IS fine;
+		RULE 14 : IF (ps IS high) AND (herf IS good) THEN result IS perfect;
+		RULE 15 : IF (ps IS high) THEN result IS fine;
+		RULE 16 : IF (herf IS excellent) THEN result IS perfect;
+		
+		RULE 17 : IF (basescore IS low) OR (basescore IS middle) THEN expectarget IS low;
+		RULE 18 : IF (basescore IS high) THEN expectarget IS middle;
+		RULE 19 : IF (basescore IS super) THEN expectarget IS high;
+   
+   END_RULEBLOCK
+   
+END_FUNCTION_BLOCK
